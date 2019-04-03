@@ -1,16 +1,13 @@
-from app import db, login
-import app
-from flask_login import UserMixin, current_user
 from datetime import datetime
-from werkzeug.security import check_password_hash, generate_password_hash
-import rq, redis
+
+import redis
+import rq
 from flask import current_app
+from flask_login import UserMixin, current_user
+from werkzeug.security import check_password_hash, generate_password_hash
 
-
-# subscribe = db.Table('subscribe',
-#                      db.Column('user_id',db.Integer,db.ForeignKey('user.id')),
-#                      db.Column('book_id',db.Integer,db.ForeignKey('book.id'))
-#                      )
+import app
+from app import db, login
 
 
 class User(UserMixin, db.Model):
@@ -26,12 +23,6 @@ class User(UserMixin, db.Model):
     is_admin = db.Column(db.Boolean)  # 表示用户是否是管理员，0表示不是，1表示是
     font_size = db.Column(db.String(10))  # 用户设置的字体大小
     night_mode = db.Column(db.Boolean, default=0)  # 夜间模式，0表示关，1表示开
-
-    # subscribing = db.relationship('Book',
-    #                              secondary=subscribe,
-    #                              primaryjoin=(subscribe.c.user_id==id),
-    #                              backref=db.backref('subscribe',lazy='dynamic'),
-    #                              lazy='dynamic')
 
     tasks = db.relationship('Task', backref='user', lazy='dynamic')
 
@@ -84,23 +75,8 @@ class Subscribe(db.Model):
     user = db.relationship('User', backref=db.backref('subscribing', lazy='dynamic'))
 
     def __repr__(self):
-        return '<User>{%s} subscribing <Book>{%s} reading <chapter>{%s}' % (self.user_id, self.book_id, self.chapter)
+        return '<User>{} subscribing <Book>{} reading <chapter>{}'.format(self.user_id, self.book_id, self.chapter)
 
-
-# class Book(db.Model):
-#     __tablename__ = 'book'
-#     id = db.Column(db.Integer,primary_key=True)
-#     _id = db.Column(db.String(50),unique=True)
-#     name = db.Column(db.String(50))
-#
-#     subscribed = db.relationship('User',
-#                                  secondary=subscribe,
-#                                  primaryjoin=(subscribe.c.book_id==id),
-#                                  backref=db.backref('subscribe',lazy='dynamic'),
-#                                  lazy='dynamic')
-#
-#     def __repr__(self):
-#         return '<Book {%s}>' % self.name
 
 class Download(db.Model):
     __tablename__ = 'download'
@@ -118,7 +94,7 @@ class Download(db.Model):
     user = db.relationship('User', backref=db.backref('downloaded', lazy='dynamic'))
 
     def __repr__(self):
-        return '<User>{%s} download <book>%s' % (self.user.name, self.book_name)
+        return '<User>{} download <book>{}'.format(self.user.name, self.book_name)
 
 
 class Task(db.Model):
@@ -156,10 +132,10 @@ class Record(db.Model):
     user = db.relationship('User', backref=db.backref('record', lazy='dynamic'))
 
     def __repr__(self):
-        return '<User:%s read Book:%s>' & (self.user.name, self.book_name)
+        return '<User:{} read Book:{}>'.format(self.user.name, self.book_name)
 
 
 @login.user_loader
-def load_user(id):
-    user = User.query.get(int(id))
+def load_user(uid):
+    user = User.query.get(int(uid))
     return user
