@@ -1,11 +1,17 @@
 import os
 
+from dotenv import load_dotenv
+
+# 加载根目录的.env文件
+basedir = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(os.path.join(basedir, '.env'))
+
 
 class Config(object):
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess'
     # database config
-    D_USER = os.environ.get('D_USER') or 'koala'
-    D_PASSWORD = os.environ.get('D_PASSWORD') or '954193221'
+    D_USER = os.environ.get('D_USER') or 'you will never known'
+    D_PASSWORD = os.environ.get('D_PASSWORD') or '123456test'
     D_HOST = '127.0.0.1'
     D_PORT = 3306
     D_DATABASE = 'lightreader'

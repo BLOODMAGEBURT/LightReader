@@ -22,6 +22,7 @@ from config import Config
 
 def get_response(url):
     i = 0
+    js = None
     while i < 5:
         js = None
         try:
