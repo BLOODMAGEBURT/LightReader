@@ -28,7 +28,7 @@ def get_response(url):
             data = requests.get(url, headers=Config.headers).text
             js = json.loads(data)
             break
-        except:
+        except ConnectionError:
             i += 1
         sleep(0.5)
     return js
@@ -157,10 +157,6 @@ def index():
             'last_chapter': js[i]['lastChapter'],
             'updated': t
         })
-    # 预分组
-    # data['male'] = [data['male'][i:i + 3] for i in range(0, len(data['male']), 3)]
-    # data['female'] = [data['female'][i:i + 3] for i in range(0, len(data['female']), 3)]
-    # data['press'] = [data['press'][i:i + 3] for i in range(0, len(data['press']), 3)]
     if not dic['classify']:
         dic['classify'] = res.get('classify')
         set_redis_string('classify', json.dumps(dic['classify']))
@@ -173,7 +169,6 @@ def index():
     form = SearchForm()
     if form.validate_on_submit():
         data = get_response('http://api.zhuishushenqi.com/book/fuzzy-search/?query=' + form.search.data)
-        # data = get_response('http://novel.juhe.im/search?keyword=' + form.search.data)
         lis = []
         for book in data.get('books'):
             lis.append(book)
@@ -186,7 +181,6 @@ def index():
 @login_required
 def subscribe():
     _id = request.args.get('id')
-    # js = get_response('https://novel.juhe.im/book-info/' + _id)
     js = get_response('http://api.zhuishushenqi.com/book/' + _id)
     name = js.get('title')
     data = get_response('http://api.zhuishushenqi.com/toc?view=summary&book=' + _id)
@@ -219,7 +213,6 @@ def get_source_id(book_id):
             source_id = dd[i]['_id']
             if dd[i]['source'] == 'my176':
                 break
-
     return source_id
 
 
@@ -722,8 +715,8 @@ def download_file():
 def get_task_progress():
     ids = json.loads(request.get_data())
     lis = []
-    for id in ids:
-        task = Task.query.filter_by(id=id).first()
+    for task_id in ids:
+        task = Task.query.filter_by(id=task_id).first()
         lis.append({
             'id': task.id,
             'progress': task.get_progress()
