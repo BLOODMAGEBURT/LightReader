@@ -4,6 +4,7 @@ import redis
 import rq
 from flask import current_app
 from flask_login import UserMixin, current_user
+from rq.exceptions import NoSuchJobError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 import app
@@ -107,7 +108,7 @@ class Task(db.Model):
     def get_rq_job(self):
         try:
             rq_job = rq.job.Job.fetch(self.id, connection=app.redis)
-        except(redis.exceptions.RedisError, rq.exceptions.NoSuchJobError) as e:
+        except(redis.exceptions.RedisError, NoSuchJobError) as e:
             print(e)
             return None
         return rq_job

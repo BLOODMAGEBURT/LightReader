@@ -299,7 +299,7 @@ def read():
         # 使用后台任务缓存下一章节
         try:
             current_app.task_queue.enqueue('app.tasks.cache', next_key, next_url)
-        except:
+        except redis.exceptions.RedisError:
             print('后台任务未开启！')
     font_size = '150%'
     if current_user.is_authenticated:
