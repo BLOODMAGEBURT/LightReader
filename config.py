@@ -12,7 +12,7 @@ class Config(object):
     # database config
     D_USER = os.environ.get('D_USER') or 'you will never known'
     D_PASSWORD = os.environ.get('D_PASSWORD') or '123456test'
-    D_HOST = '127.0.0.1'
+    D_HOST = os.environ.get('D_HOST') or '127.0.0.1'
     D_PORT = 3306
     D_DATABASE = 'lightreader'
     # sql连接字符串
