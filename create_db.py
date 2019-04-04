@@ -1,6 +1,7 @@
 import pymysql
-from config import Config
+
 from app import db
+from config import Config
 
 conn = pymysql.connect(host=Config.D_HOST, port=Config.D_PORT, user=Config.D_USER, passwd=Config.D_PASSWORD)
 cursor = conn.cursor()
