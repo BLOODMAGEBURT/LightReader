@@ -33,7 +33,7 @@ app.task_queue = rq.Queue('lightreader-tasks', connection=redis)
 
 from app import models, routes
 
-import create_db
+# import create_db
 
 
 @babel.localeselector
