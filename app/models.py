@@ -26,6 +26,7 @@ class User(UserMixin, db.Model):
     night_mode = db.Column(db.Boolean, default=0)  # 夜间模式，0表示关，1表示开
 
     tasks = db.relationship('Task', backref='user', lazy='dynamic')
+    orders = db.relationship('Order', backref='user', lazy='dynamic')
 
     def __repr__(self):
         return '<User {%s}>' % self.name
@@ -36,7 +37,7 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    # # 以下几个方法存在不明bug
+    # 以下几个方法存在不明bug
     # def is_subscribing(self,book):
     #     return self.subscribing.filter(subscribe.c.book_id == book.id).count() > 0
     #
@@ -61,6 +62,34 @@ class User(UserMixin, db.Model):
     def get_task_in_progress(self, name):
         return Task.query.filter_by(name=name, user=self, complete=False).first()
 
+    # 提单
+    def submit_order(self):
+        return '{} you submitted an order'.format(self.name)
+
+    # 查单
+    def get_orders(self):
+        return self.orders
+
+
+class Order(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    type_id = db.Column(db.Integer, db.ForeignKey('type.id'))
+    type_name = db.Column(db.String(128), nullable=False)
+    coupon_code = db.Column(db.String(10), nullable=False)
+    coupon_num = db.Column(db.Integer, nullable=False)
+    coupon_img = db.Column(db.String(128), nullable=False)
+    create_time = db.Column(db.DateTime, default=datetime.utcnow)
+    edit_time = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Type(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128), nullable=False)
+    is_deleted = db.Column(db.Boolean, default=False)
+    orders = db.relationship('Order', backref='type', lazy="dynamic")
+    create_time = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 class Subscribe(db.Model):
     __tablename__ = 'subscribe'
@@ -70,7 +99,7 @@ class Subscribe(db.Model):
     book_name = db.Column(db.String(128))
     chapter = db.Column(db.String(128))
     source_id = db.Column(db.String(128))
-    time = db.Column(db.DateTime, default=datetime.now())
+    time = db.Column(db.DateTime, default=datetime.now)
     chapter_name = db.Column(db.String(128))
 
     user = db.relationship('User', backref=db.backref('subscribing', lazy='dynamic'))
