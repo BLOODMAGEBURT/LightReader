@@ -82,12 +82,18 @@ class Order(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     type_id = db.Column(db.Integer, db.ForeignKey('type.id'))
     type_name = db.Column(db.String(128), nullable=False)
-    coupon_code = db.Column(db.String(10), nullable=False)
     coupon_num = db.Column(db.Integer, nullable=False)
-    coupon_img = db.Column(db.String(128), nullable=False)
     create_time = db.Column(db.DateTime, default=datetime.utcnow)
     edit_time = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.Integer, default=1)  # 1为未完成， 2 为已完成
+    order_items = db.relationship('OrderItem', backref='order', lazy='dynamic')
+
+
+class OrderItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'))
+    coupon_code = db.Column(db.String(10), nullable=False)
+    coupon_img = db.Column(db.String(128), nullable=False)
 
 
 class Type(db.Model):
