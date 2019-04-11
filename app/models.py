@@ -63,11 +63,17 @@ class User(UserMixin, db.Model):
         return Task.query.filter_by(name=name, user=self, complete=False).first()
 
     # 提单
-    def submit_order(self):
-        return '{} you submitted an order'.format(self.name)
+    def submit_order(self, order):
+        order.user = self
+        db.session.add(order)
+        return '{} you submitted an order, order id is :{}'.format(self.name, order.id)
 
     # 查单
-    def get_orders(self):
+    def get_orders(self, status):
+        if status is not None:
+            return self.orders.filter_by(status=status).all()
+
+        # 其他的获取全部
         return self.orders
 
 
@@ -81,6 +87,7 @@ class Order(db.Model):
     coupon_img = db.Column(db.String(128), nullable=False)
     create_time = db.Column(db.DateTime, default=datetime.utcnow)
     edit_time = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.Integer, default=1)  # 1为未完成， 2 为已完成
 
 
 class Type(db.Model):
