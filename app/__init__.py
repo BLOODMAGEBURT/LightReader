@@ -1,15 +1,15 @@
-from flask import Flask, request
-from flask_login import LoginManager
-from flask_sqlalchemy import SQLAlchemy, SignallingSession
-from flask_migrate import Migrate
-from flask_bootstrap import Bootstrap
-from config import Config
-from flask_uploads import UploadSet, configure_uploads, TEXT
-from flask_moment import Moment
-from flask_babel import Babel
-from redis import Redis
 import rq
+from flask import Flask, request
+from flask_babel import Babel
+from flask_bootstrap import Bootstrap
+from flask_login import LoginManager
+from flask_migrate import Migrate
+from flask_moment import Moment
+from flask_sqlalchemy import SQLAlchemy
+from flask_uploads import UploadSet, configure_uploads, TEXT
+from redis import Redis
 
+from config import Config
 
 # class MySQLAlchemy(SQLAlchemy):
 #     def create_session(self, options):
@@ -31,7 +31,12 @@ babel = Babel(app)
 redis = Redis.from_url(app.config['REDIS_URL'])
 app.task_queue = rq.Queue('lightreader-tasks', connection=redis)
 
+from app.order import bp as order_bp
+
+app.register_blueprint(order_bp)
+
 from app import models, routes
+
 
 # import create_db
 
