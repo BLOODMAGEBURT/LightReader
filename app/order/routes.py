@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-from flask_login import current_user
-
+from flask import url_for
 from app.order import bp
-
+from flask_login import login_required, current_user
 """
 -------------------------------------------------
    File Name：     routes
@@ -17,5 +16,7 @@ from app.order import bp
 
 
 @bp.route('/orders', methods=['GET', 'POST'])
+@login_required
 def orders():
+    url_for()
     return 'hi {}'.format(current_user.name)
