@@ -11,6 +11,11 @@ import app
 from app import db, login
 
 
+class PaginateMixIn(object):
+    def paginate(self):
+        pass
+
+
 class User(UserMixin, db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
