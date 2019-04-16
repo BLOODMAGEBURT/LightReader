@@ -88,12 +88,36 @@ class Order(db.Model):
     status = db.Column(db.Integer, default=1)  # 1为未完成， 2 为已完成
     order_items = db.relationship('OrderItem', backref='order', lazy='dynamic')
 
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'user_id': self.user_id,
+            'user_name': self.user.name,
+            'type_id': self.type_id,
+            'type_name': self.type_name,
+            'coupon_num': self.coupon_num,
+            'create_time': self.create_time.isoformat() + 'Z',
+            'edit_time': self.edit_time.isoformat() + "Z",
+            'status': self.status,
+            'order_items': [order_item.to_dict() for order_item in self.order_items]
+        }
+        return data
+
 
 class OrderItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey('order.id'))
     coupon_code = db.Column(db.String(10), nullable=False)
     coupon_img = db.Column(db.String(128), nullable=False)
+
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'order_id': self.order_id,
+            'coupon_code': self.coupon_code,
+            'coupon_img': self.coupon_img
+        }
+        return data
 
 
 class Type(db.Model):
@@ -102,6 +126,16 @@ class Type(db.Model):
     is_deleted = db.Column(db.Boolean, default=False)
     orders = db.relationship('Order', backref='type', lazy="dynamic")
     create_time = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'name': self.name,
+            'is_deleted': self.is_deleted,
+            'create_time': self.create_time.isoformat() + 'Z',
+            'orders': [order.to_dict() for order in self.orders]
+        }
+        return data
 
 
 class Subscribe(db.Model):
