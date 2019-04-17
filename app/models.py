@@ -2,7 +2,7 @@ from datetime import datetime
 
 import redis
 import rq
-from flask import current_app
+from flask import current_app, url_for
 from flask_login import UserMixin, current_user
 from rq.exceptions import NoSuchJobError
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -12,11 +12,30 @@ from app import db, login
 
 
 class PaginateMixIn(object):
-    def paginate(self):
-        pass
+    @staticmethod
+    def to_collections_dict(query, page, per_page, end_point, **kwargs):
+        resources = query.paginate(page, per_page, False)
+        data = {
+            'items': [item.to_dict() for item in resources.items],
+            '_meta': {
+                'page': page,
+                'per_page': per_page,
+                'total_pages': resources.pages,
+                'total_items': resources.total
+            },
+            '_links': {
+                'self_url': url_for(end_point, page=page, per_page=per_page, **kwargs),
+                'next_url': url_for(end_point, page=page + 1, per_page=per_page,
+                                    **kwargs) if resources.has_next else None,
+                'pre_url': url_for(end_point, page=page - 1, per_page=per_page,
+                                   **kwargs) if resources.has_prev else None
+            }
+        }
+
+        return data
 
 
-class User(UserMixin, db.Model):
+class User(UserMixin, db.Model, PaginateMixIn):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20), unique=True, nullable=False)
@@ -82,7 +101,7 @@ class User(UserMixin, db.Model):
         return self.orders
 
 
-class Order(db.Model):
+class Order(db.Model, PaginateMixIn):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     type_id = db.Column(db.Integer, db.ForeignKey('type.id'))
@@ -125,7 +144,7 @@ class OrderItem(db.Model):
         return data
 
 
-class Type(db.Model):
+class Type(db.Model, PaginateMixIn):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False)
     is_deleted = db.Column(db.Boolean, default=False)
@@ -141,6 +160,10 @@ class Type(db.Model):
             'orders': [order.to_dict() for order in self.orders]
         }
         return data
+
+    def from_dict(self, data):
+        if 'name' in data:
+            setattr(self, 'name', data['name'])
 
 
 class Subscribe(db.Model):
