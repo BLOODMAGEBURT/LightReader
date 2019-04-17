@@ -21,12 +21,18 @@ from app.models import Type
 
 @bp.route('/types', methods=['GET'])
 def get_types():
-    pass
+    page = request.args.get('page', default=1, type=int)
+    per_page = min(request.args.get('per_page', default=15, type=int), 100)
+
+    query = Type.query.filter_by(is_deleted=False)
+    return jsonify(Type.to_collections_dict(query, page, per_page, 'api.get_types'))
 
 
 @bp.route('/types/<tid>', methods=['GET'])
 def get_type(tid):
-    pass
+    order_type = Type.get_or_404(tid)
+
+    return jsonify(order_type.to_dict())
 
 
 @bp.route('/types', methods=['POST'])
@@ -47,9 +53,19 @@ def add_type():
 
 @bp.route('/types/<tid>', methods=['PUT'])
 def update_type(tid):
-    pass
+    order_type = Type.query.get_or_404(tid)
+
+    data = request.get_json() or {}
+    if ('id ' and 'name') not in data:
+        return bad_request(400, 'id and name must included')
+    order_type.from_dict(data)
+    db.session.commit()
+    return jsonify(order_type.to_dict())
 
 
 @bp.route('/types/<tid>', methods=['DELETE'])
 def del_type(tid):
-    pass
+    order_type = Type.query.get_or_404(tid)
+    order_type.is_deleted = True
+    db.session.commit()
+    return jsonify(200, 'successful')

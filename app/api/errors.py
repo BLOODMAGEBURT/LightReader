@@ -21,10 +21,10 @@ def bad_request(error_code, msg):
 
 
 @app.errorhandler(404)
-def not_found_error():
+def not_found_error(error):
     return bad_request(404, 'resource not found')
 
 
 @app.errorhandler(500)
-def server_error():
+def server_error(error):
     return bad_request(500, 'server internal error')
