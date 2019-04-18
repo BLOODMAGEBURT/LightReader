@@ -30,7 +30,7 @@ def get_types():
 
 @bp.route('/types/<tid>', methods=['GET'])
 def get_type(tid):
-    order_type = Type.get_or_404(tid)
+    order_type = Type.query.get_or_404(tid)
 
     return jsonify(order_type.to_dict())
 

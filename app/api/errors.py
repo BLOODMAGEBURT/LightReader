@@ -25,6 +25,11 @@ def not_found_error(error):
     return bad_request(404, 'resource not found')
 
 
+@app.errorhandler(405)
+def method_not_allowed(error):
+    return bad_request(405, 'method not allowed')
+
+
 @app.errorhandler(500)
 def server_error(error):
     return bad_request(500, 'server internal error')

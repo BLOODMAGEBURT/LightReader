@@ -1,4 +1,3 @@
-import asyncio
 import json
 import os
 import re
@@ -9,6 +8,7 @@ from time import sleep
 from time import time
 
 import aiohttp
+import asyncio
 import requests
 from flask import render_template, flash, redirect, url_for, request, jsonify, current_app
 from flask_login import current_user, login_required, login_user, logout_user
@@ -109,12 +109,12 @@ def delete_user(id):
 # @login_required
 def index():
     dic = {}
-    subscribe_lis = list()
-    res = dict()
+    subscribe_lis = []
+    res = {}
     # 手动创建事件循环
     asyncio.set_event_loop(asyncio.new_event_loop())
     loop = asyncio.get_event_loop()
-    tasks = list()
+    tasks = []
     # 获取订阅信息
     if current_user.is_authenticated:
         dic['subscribe'] = []
@@ -126,7 +126,6 @@ def index():
                 s_url += s.book_id + ','
             s_url = s_url[:-1]
             tasks.append(async_get_response(key='subscribe', url=s_url, res=res))
-
     # 获取分类
     # tasks.append(async_get_response(key='classify', url='https://novel.juhe.im/categories', res=res))
     dic['classify'] = get_redis_string('classify')
