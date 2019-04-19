@@ -139,15 +139,21 @@ class Order(db.Model, PaginateMixIn):
         return data
 
     def from_dict(self, data):
-        for field in ['user_id', 'user_name', 'type_id', 'type_name', 'coupon_num', 'order_items']:
+        for field in ['user_id', 'user_name', 'type_id', 'type_name', 'coupon_num']:
             if field in data:
                 setattr(self, field, data[field])
+
+        # 循环添加子表
+        for item in data['order_items']:
+            order_item = OrderItem()
+            item['order_id'] = self.id
+            order_item.from_dict(item)
 
 
 class OrderItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey('order.id'))
-    coupon_code = db.Column(db.String(10), nullable=False)
+    coupon_code = db.Column(db.String(50), nullable=False)
     coupon_img = db.Column(db.String(128), nullable=False)
 
     def to_dict(self):
@@ -158,6 +164,11 @@ class OrderItem(db.Model):
             'coupon_img': self.coupon_img
         }
         return data
+
+    def from_dict(self, data):
+        for field in ['order_id', 'coupon_code', 'coupon_img']:
+            if field in data:
+                setattr(self, field, data[field])
 
 
 class Type(db.Model, PaginateMixIn):

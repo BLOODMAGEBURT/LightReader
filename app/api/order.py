@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
+from flask import g
 from flask import jsonify, request
 
+from app import db
 from app.api import bp
+from app.api.auth import token_auth
 from app.api.errors import bad_request
 from app.models import Order
 
@@ -27,25 +30,39 @@ def get_orders():
 
 
 @bp.route('/orders/<oid>', methods=['GET'])
+@token_auth.login_required
 def get_order(oid):
     order = Order.query.get_or_404(oid)
     return jsonify(order.to_dict())
 
 
 @bp.route('/orders', methods=['POST'])
+@token_auth.login_required
 def add_order():
     data = request.get_json() or {}
     if ('type_id' and 'type_name' and 'coupon_num' and 'order_items') not in data:
         return bad_request(400, 'type_id type_name, coupon_num, order_items must be included')
-    # data['user_name'] =
+
+    # 判断非空
+    if not data['order_items']:
+        return bad_request(400, 'order_items can not be empty')
+
+    data['user_id'] = g.current_user.id
+    data['user_name'] = g.current_user.name
     order = Order()
+    order.from_dict(data)
+    db.session.add(order)
+    db.session.commit()
+    return jsonify(order.to_dict())
 
 
 @bp.route('/orders/<oid>', methods=['PUT'])
+@token_auth.login_required
 def update_order(oid):
     pass
 
 
 @bp.route('/orders/<oid>', methods=['DELETE'])
+@token_auth.login_required
 def del_order(oid):
     pass
