@@ -1,4 +1,6 @@
-from datetime import datetime
+import base64
+import os
+from datetime import datetime, timedelta
 
 import redis
 import rq
@@ -48,6 +50,8 @@ class User(UserMixin, db.Model, PaginateMixIn):
     is_admin = db.Column(db.Boolean)  # 表示用户是否是管理员，0表示不是，1表示是
     font_size = db.Column(db.String(10))  # 用户设置的字体大小
     night_mode = db.Column(db.Boolean, default=0)  # 夜间模式，0表示关，1表示开
+    token = db.Column(db.String(32), index=True, unique=True)
+    token_expiration = db.Column(db.DateTime)
 
     tasks = db.relationship('Task', backref='user', lazy='dynamic')
     orders = db.relationship('Order', backref='user', lazy='dynamic')
@@ -60,18 +64,6 @@ class User(UserMixin, db.Model, PaginateMixIn):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
-
-    # 以下几个方法存在不明bug
-    # def is_subscribing(self,book):
-    #     return self.subscribing.filter(subscribe.c.book_id == book.id).count() > 0
-    #
-    # def subscribe(self,book):
-    #     if not self.is_subscribing(book):
-    #         self.subscribing.append(book)
-    #
-    # def un_subscribe(self,book):
-    #     if self.is_subscribing(book):
-    #         self.subscribing.remove(book)
 
     def launch_task(self, name, description, source_id, book_id):
         rq_job = current_app.task_queue.enqueue('app.tasks.' + name, current_user.id, source_id, book_id)
@@ -100,6 +92,25 @@ class User(UserMixin, db.Model, PaginateMixIn):
         # 其他的获取全部
         return self.orders
 
+    def get_token(self, expires_in=3600):
+        now = datetime.utcnow()
+        if self.token and self.token_expiration > now + timedelta(seconds=60):
+            return self.token
+        self.token = base64.b64encode(os.urandom(24)).decode('utf-8')
+        self.token_expiration = now + timedelta(seconds=expires_in)
+        db.session.add(self)
+        return self.token
+
+    def revoke_token(self):
+        self.token_expiration = datetime.utcnow() - timedelta(seconds=1)
+
+    @staticmethod
+    def check_token(token):
+        user = User.query.filer_by(token=token).first()
+        if user is None and user.token_expiration < datetime.utcnow():
+            return None
+        return user
+
 
 class Order(db.Model, PaginateMixIn):
     id = db.Column(db.Integer, primary_key=True)
@@ -126,6 +137,11 @@ class Order(db.Model, PaginateMixIn):
             'order_items': [order_item.to_dict() for order_item in self.order_items]
         }
         return data
+
+    def from_dict(self, data):
+        for field in ['user_id', 'user_name', 'type_id', 'type_name', 'coupon_num', 'order_items']:
+            if field in data:
+                setattr(self, field, data[field])
 
 
 class OrderItem(db.Model):
