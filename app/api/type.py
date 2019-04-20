@@ -68,4 +68,7 @@ def del_type(tid):
     order_type = Type.query.get_or_404(tid)
     order_type.is_deleted = True
     db.session.commit()
-    return jsonify(200, 'successful')
+    return jsonify({
+        'code': 200,
+        'msg': 'success deleted'
+    })

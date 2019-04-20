@@ -138,16 +138,16 @@ class Order(db.Model, PaginateMixIn):
         }
         return data
 
-    def from_dict(self, data):
+    def from_dict(self, data, include_items=True):
         for field in ['user_id', 'user_name', 'type_id', 'type_name', 'coupon_num']:
             if field in data:
                 setattr(self, field, data[field])
-
-        # 循环添加子表
-        for item in data['order_items']:
-            order_item = OrderItem()
-            item['order_id'] = self.id
-            order_item.from_dict(item)
+        if include_items:
+            # 循环添加子表
+            for item in data['order_items']:
+                order_item = OrderItem()
+                item['order_id'] = self.id
+                order_item.from_dict(item)
 
 
 class OrderItem(db.Model):
