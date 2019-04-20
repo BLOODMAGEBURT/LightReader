@@ -5,7 +5,7 @@ from app import db
 from app.api import bp
 from app.api.errors import bad_request
 from app.models import Type
-
+from app.api.auth import token_auth
 """
 -------------------------------------------------
    File Name：     type
@@ -20,6 +20,7 @@ from app.models import Type
 
 
 @bp.route('/types', methods=['GET'])
+@token_auth.login_required
 def get_types():
     page = request.args.get('page', default=1, type=int)
     per_page = min(request.args.get('per_page', default=15, type=int), 100)
@@ -29,6 +30,7 @@ def get_types():
 
 
 @bp.route('/types/<tid>', methods=['GET'])
+@token_auth.login_required
 def get_type(tid):
     order_type = Type.query.get_or_404(tid)
 
@@ -36,6 +38,7 @@ def get_type(tid):
 
 
 @bp.route('/types', methods=['POST'])
+@token_auth.login_required
 def add_type():
     data = request.get_json() or {}
     if 'name' not in data:
@@ -52,6 +55,7 @@ def add_type():
 
 
 @bp.route('/types/<tid>', methods=['PUT'])
+@token_auth.login_required
 def update_type(tid):
     order_type = Type.query.get_or_404(tid)
 
@@ -64,6 +68,7 @@ def update_type(tid):
 
 
 @bp.route('/types/<tid>', methods=['DELETE'])
+@token_auth.login_required
 def del_type(tid):
     order_type = Type.query.get_or_404(tid)
     order_type.is_deleted = True

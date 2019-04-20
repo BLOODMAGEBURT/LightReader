@@ -64,7 +64,7 @@ def update_order(oid):
     if ('type_id' and 'type_name' and 'coupon_num') not in data:
         return bad_request(400, 'type_id type_name, coupon_num must be included')
 
-    order.from_dict(data, include_items=False)
+    order.from_dict(data, include_items=False, is_update=True)
     db.session.commit()
 
     return jsonify(order.to_dict())

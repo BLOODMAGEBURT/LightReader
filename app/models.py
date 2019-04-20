@@ -43,11 +43,11 @@ class User(UserMixin, db.Model, PaginateMixIn):
     name = db.Column(db.String(20), unique=True, nullable=False)
     # email = db.Column(db.String(50),unique=True,nullable=False)
     password_hash = db.Column(db.String(128))
-    can_download = db.Column(db.Boolean)  # 表示用户是否有下载权限，0表示没有，1表示有
-    last_seen = db.Column(db.DateTime, default=datetime.now())
+    can_download = db.Column(db.Boolean, default=0)  # 表示用户是否有下载权限，0表示没有，1表示有
+    last_seen = db.Column(db.DateTime, default=datetime.now)
     user_ip = db.Column(db.String(20))
     user_agent = db.Column(db.String(256))
-    is_admin = db.Column(db.Boolean)  # 表示用户是否是管理员，0表示不是，1表示是
+    is_admin = db.Column(db.Boolean, default=0)  # 表示用户是否是管理员，0表示不是，1表示是
     font_size = db.Column(db.String(10))  # 用户设置的字体大小
     night_mode = db.Column(db.Boolean, default=0)  # 夜间模式，0表示关，1表示开
     token = db.Column(db.String(32), index=True, unique=True)
@@ -98,7 +98,7 @@ class User(UserMixin, db.Model, PaginateMixIn):
             return self.token
         self.token = base64.b64encode(os.urandom(24)).decode('utf-8')
         self.token_expiration = now + timedelta(seconds=expires_in)
-        db.session.add(self)
+        # db.session.add(self)
         return self.token
 
     def revoke_token(self):
@@ -106,7 +106,7 @@ class User(UserMixin, db.Model, PaginateMixIn):
 
     @staticmethod
     def check_token(token):
-        user = User.query.filer_by(token=token).first()
+        user = User.query.filter_by(token=token).first()
         if user is None and user.token_expiration < datetime.utcnow():
             return None
         return user
@@ -138,7 +138,7 @@ class Order(db.Model, PaginateMixIn):
         }
         return data
 
-    def from_dict(self, data, include_items=True):
+    def from_dict(self, data, include_items=True, is_update=False):
         for field in ['user_id', 'user_name', 'type_id', 'type_name', 'coupon_num']:
             if field in data:
                 setattr(self, field, data[field])
@@ -148,6 +148,9 @@ class Order(db.Model, PaginateMixIn):
                 order_item = OrderItem()
                 item['order_id'] = self.id
                 order_item.from_dict(item)
+
+        if is_update:
+            self.edit_time = datetime.utcnow()
 
 
 class OrderItem(db.Model):
