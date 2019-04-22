@@ -17,7 +17,10 @@ from app import app
 
 
 def bad_request(error_code, msg):
-    return jsonify(error_code, msg)
+    return jsonify({
+        'code': error_code,
+        'msg': msg
+    })
 
 
 @app.errorhandler(404)
