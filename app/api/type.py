@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
+import logging
+
 from flask import request, jsonify
 
-from app import db
+from app import db, cache, cache_key
 from app.api import bp
+from app.api.auth import token_auth
 from app.api.errors import bad_request
 from app.models import Type
-from app.api.auth import token_auth
+
 """
 -------------------------------------------------
    File Name：     type
@@ -21,17 +24,21 @@ from app.api.auth import token_auth
 
 @bp.route('/types', methods=['GET'])
 @token_auth.login_required
+@cache.cached(timeout=300, key_prefix=cache_key)
 def get_types():
     page = request.args.get('page', default=1, type=int)
     per_page = min(request.args.get('per_page', default=15, type=int), 100)
-
+    logging.info('request_path:{}'.format(request.path))
+    logging.info('request_url:{}'.format(request.url))
     query = Type.query.filter_by(is_deleted=False)
     return jsonify(Type.to_collections_dict(query, page, per_page, 'api.get_types'))
 
 
 @bp.route('/types/<tid>', methods=['GET'])
 @token_auth.login_required
+@cache.memoize(timeout=300)
 def get_type(tid):
+    logging.info('request_path:{}'.format(request.path))
     order_type = Type.query.get_or_404(tid)
 
     return jsonify(order_type.to_dict())

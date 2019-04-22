@@ -22,6 +22,14 @@ class Config(object):
     # redis设置
     REDIS_URL = os.environ.get('REDIS_URL') or 'redis://'
 
+    # 缓存设置
+    CACHE_TYPE = os.environ.get('CACHE_TYPE') or 'simple'
+    CACHE_REDIS_HOST = os.environ.get('CACHE_REDIS_HOST') or '127.0.0.1'
+    CACHE_REDIS_PORT = os.environ.get('ACHE_REDIS_PORT') or 6379
+    CACHE_REDIS_PASSWORD = os.environ.get('CACHE_REDIS_PASSWORD')
+    CACHE_REDIS_DB = os.environ.get('CACHE_REDIS_DB')
+
+
     # 语言设置
     LANGUAGES = ['zh-CN']
 
@@ -47,3 +55,4 @@ class Config(object):
         'User-Agent': 'ZhuiShuShenQi/3.172.1 (Android 5.1.1; Meizu X86 / Meizu Mx5; China Mobile GSM)'
                       '[preload=false;locale=zh_CN;clientidbase=]'
     }
+
