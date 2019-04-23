@@ -39,7 +39,7 @@ cache = Cache(app, config={
 
 
 def cache_key():
-    key = request.path + request.url.split('/', 1)[-1]
+    key = request.path + '?' + request.url.rsplit('/', 1)[-1]
     return key
 
 
