@@ -52,7 +52,7 @@ class User(UserMixin, db.Model, PaginateMixIn):
     night_mode = db.Column(db.Boolean, default=0)  # 夜间模式，0表示关，1表示开
     token = db.Column(db.String(32), index=True, unique=True)
     token_expiration = db.Column(db.DateTime)
-
+    phone = db.Column(db.Integer)
     tasks = db.relationship('Task', backref='user', lazy='dynamic')
     orders = db.relationship('Order', backref='user', lazy='dynamic')
 

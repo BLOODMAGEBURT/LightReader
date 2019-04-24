@@ -294,9 +294,9 @@ def read():
             current_app.task_queue.enqueue('app.tasks.cache', next_key, next_url)
         except redis.exceptions.RedisError:
             print('后台任务未开启！')
-    font_size = '150%'
+    font_size = '120%'
     if current_user.is_authenticated:
-        font_size = current_user.font_size if current_user.font_size is not None else '150%'
+        font_size = current_user.font_size if current_user.font_size is not None else '120%'
         s = Subscribe.query.filter(Subscribe.book_id == book_id, Subscribe.user == current_user).first()
         if s:
             r.is_subscribe = True
