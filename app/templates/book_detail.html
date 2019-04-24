@@ -32,7 +32,7 @@
     {% endif %}
     <p>阅读选项：
         <a href="{{ url_for('chapter',source_id=source_id,book_id=data.get('_id'),page=0) }}">章节列表</a>&nbsp;&nbsp;
-        <a href="{{ url_for('source',book_id=data.get('_id')) }}">换源</a>&nbsp;&nbsp;
+        {#<a href="{{ url_for('source',book_id=data.get('_id')) }}">换源</a>&nbsp;&nbsp;#}
         {% if is_subscribe %}
             <a href="{{ url_for('unsubscribe',id=data.get('_id')) }}">取消订阅</a>
         {% else %}

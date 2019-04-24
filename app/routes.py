@@ -460,7 +460,6 @@ def source(book_id):
 
 # 分类
 @app.route('/classify', methods=['GET'])
-@login_required
 def classify():
     gender = request.args.get('gender')
     _type = request.args.get('type')
@@ -489,7 +488,6 @@ def classify():
 
 # 书单列表
 @app.route('/book_list_rank', methods=['GET'])
-@login_required
 def book_list_rank():
     gender = request.args.get('gender')
     duration = request.args.get('duration')
@@ -526,7 +524,6 @@ def book_list_detail(_id):
 
 # 排行榜
 @app.route('/rank/<_id>', methods=['GET'])
-@login_required
 def rank(_id):
     # data = get_response('http://novel.juhe.im/rank/' + _id)
     data = get_response('http://api.zhuishushenqi.com/ranking/' + _id)
@@ -731,17 +728,17 @@ def read_setting():
         index = request.args.get('index')
         book_id = request.args.get('book_id=book_id')
         source_id = request.args.get('source_id')
-        body = ['我们日复一日地生活于世，却对世界几乎一无所知。',
-                '阳光的产生机制使生命得以实现；重力将我们束缚在地球上，不让我们以涡旋轨道被抛到太空；原子构成了我们的身躯，并使之保持稳定。',
-                '对于这些，我们思考的很少。',
-                '我们之中，很少有人会花时间惊讶自然界为何是这个样子：',
-                '宇宙从何而来？',
-                '或者它是否一直在这儿？',
-                '时间会不会有朝一日倒流，并因此导致果先于因？',
-                '人类的认知范围是否终有极限？',
-                '物质的最小组成是什么？',
-                '为什么我们记住的是过去，而不是未来？',
-                '以及，为什么会有宇宙？']
+        body = ['信用卡额度不是洪水猛兽，而是你进入更高一层的阶层的顺风车。',
+                '96费改之后，银行已经是“睁只眼闭只眼”的状态，“充电五分钟，套现一百万”不仅仅是个段子。',
+                '何不搭乘这趟快车，迅速提升自己的眼界和境界，让自己的阶层也能得到提升呢？',
+                '须知，开十万的车和开五十万的车，你的交际圈的水平自然大有不同，别人看到你的第一印象，也是大有不同的。',
+                '而至于短期内需要大笔资金而借钱难如登天的现状，相信每个读者都有切身体会。',
+                '而高额信用卡+各种套现工具的组合，也是解决燃眉之急的成本最低的方式。',
+                '假如你不是想要提升自己而是仅靠信用卡暂时获得虚荣或者其他物质方面的追求的读者，请你远离信用卡。',
+                '那样会让你变成卡奴，滚雪球般的债务很快会将你拖入万劫不复的深渊',
+                '而真正有本领怀才不遇却被五斗米折腰的有志青年，信用卡额度是你快速打通向上的通道的顺风车，。',
+                '它给你带来的不仅仅是银行的羊毛这样的蝇头小利，',
+                '还有提升自身的最长久的投资']
         next_url = url_for('read', index=index, book_id=book_id, source_id=source_id)
         return render_template('read_setting.html', title='阅读设置', body=body, next_url=next_url)
     if request.method == 'POST':
