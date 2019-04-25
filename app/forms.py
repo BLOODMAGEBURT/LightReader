@@ -20,8 +20,7 @@ class RegistrationForm(FlaskForm):
     password2 = PasswordField('重复密码', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('注册')
 
-    @staticmethod
-    def validate_username(username):
+    def validate_username(self, username):
         user = User.query.filter_by(name=username.data).first()
         if user is not None:
             raise ValidationError('手机号已注册')
