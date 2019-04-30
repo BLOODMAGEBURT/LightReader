@@ -3,9 +3,9 @@
 
 {% block app_content %}
     {% if not current_user.is_anonymous %}
-        <p>欢迎，{{ current_user.name }}</p>
+        <p>你好，{{ current_user.name }}</p>
     {% else %}
-        <p>欢迎，旅行者</p>
+        <p>你好，外星人</p>
     {% endif %}
     <hr>
     <h1 style="font-size: large">订阅</h1>
@@ -166,8 +166,9 @@
             <a href="{{ url_for('book_list_rank',gender='female',sort='created',duration='duration=all',start=0) }}">最新发布</a>
         </tr>
     </table>
-
-
+    <br>
+    <br>
+    <p align="center">本站为练习编程使用，如有侵权请联系17600698260</p>
 {% endblock %}
 
 {% block navbar %}
