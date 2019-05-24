@@ -10,7 +10,7 @@ from app import app
    Author :       Administrator
    date：          2019/4/17 0017
 -------------------------------------------------
-   Change Activity:
+   Change Activity:f
                    2019/4/17 0017:
 -------------------------------------------------
 """
@@ -20,7 +20,7 @@ def bad_request(error_code, msg):
     return jsonify({
         'code': error_code,
         'msg': msg
-    })
+    }), error_code
 
 
 @app.errorhandler(404)
