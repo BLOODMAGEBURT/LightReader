@@ -20,7 +20,7 @@ def bad_request(error_code, msg):
     return jsonify({
         'code': error_code,
         'msg': msg
-    }), error_code
+    })
 
 
 @app.errorhandler(404)

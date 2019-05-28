@@ -108,7 +108,7 @@ class User(UserMixin, db.Model, PaginateMixIn):
     @staticmethod
     def check_token(token):
         user = User.query.filter_by(token=token).first()
-        if user is None and user.token_expiration < datetime.utcnow():
+        if user is None or user.token_expiration < datetime.utcnow():
             return None
         return user
 
@@ -197,16 +197,29 @@ class Type(db.Model, PaginateMixIn):
             setattr(self, 'name', data['name'])
 
 
-class TodoType(db.Model):
+class TodoType(db.Model, PaginateMixIn):
     __tablename__ = 'todo_type'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     name = db.Column(db.String(50), nullable=False)
     is_deleted = db.Column(db.Boolean, default=False)
-    todo_items = db.relationship('Todo', backref=db.backref('type', lazy='dynamic'))
+    todo_items = db.relationship('Todo', backref='type', lazy='dynamic')
+
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'user_id': self.user_id,
+            'name': self.name,
+            'is_deleted': self.is_deleted
+        }
+        return data
+
+    def from_dict(self, data):
+        if 'name' in data:
+            setattr(self, 'name', data['name'])
 
 
-class Todo(db.Model):
+class Todo(db.Model, PaginateMixIn):
     id = db.Column(db.Integer, primary_key=True)
     type_id = db.Column(db.Integer, db.ForeignKey('todo_type.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -215,6 +228,26 @@ class Todo(db.Model):
     is_completed = db.Column(db.Boolean, default=False)
     is_deleted = db.Column(db.Boolean, default=False)
     create_time = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'type_id': self.type_id,
+            'user_id': self.user_id,
+            'user_name': self.user.name,
+            'title': self.title,
+            'detail': self.detail,
+            'is_completed': self.is_completed,
+            'is_deleted': self.is_deleted,
+            'create_time': self.create_time
+        }
+
+        return data
+
+    def from_dict(self, todo_data):
+        for field in ['type_id', 'title', 'detail', 'is_completed', 'is_deleted']:
+            if field in todo_data:
+                setattr(self, field, todo_data[field])
 
 
 class Subscribe(db.Model):
