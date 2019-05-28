@@ -54,6 +54,8 @@ class User(UserMixin, db.Model, PaginateMixIn):
     token_expiration = db.Column(db.DateTime)
     tasks = db.relationship('Task', backref='user', lazy='dynamic')
     orders = db.relationship('Order', backref='user', lazy='dynamic')
+    todo_types = db.relationship('TodoType', backref='user', lazy='dynamic')
+    todo_list = db.relationship('Todo', backref='user', lazy='dynamic')
 
     def __repr__(self):
         return '<User {%s}>' % self.name
@@ -193,6 +195,26 @@ class Type(db.Model, PaginateMixIn):
     def from_dict(self, data):
         if 'name' in data:
             setattr(self, 'name', data['name'])
+
+
+class TodoType(db.Model):
+    __tablename__ = 'todo_type'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    name = db.Column(db.String(50), nullable=False)
+    is_deleted = db.Column(db.Boolean, default=False)
+    todo_items = db.relationship('Todo', backref=db.backref('type', lazy='dynamic'))
+
+
+class Todo(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    type_id = db.Column(db.Integer, db.ForeignKey('todo_type.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    title = db.Column(db.String(128), nullable=False)
+    detail = db.Column(db.String(300))
+    is_completed = db.Column(db.Boolean, default=False)
+    is_deleted = db.Column(db.Boolean, default=False)
+    create_time = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 class Subscribe(db.Model):
