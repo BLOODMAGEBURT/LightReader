@@ -201,7 +201,7 @@ class TodoType(db.Model, PaginateMixIn):
     __tablename__ = 'todo_type'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    name = db.Column(db.String(50), nullable=False)
+    type_name = db.Column(db.String(50), nullable=False)
     is_deleted = db.Column(db.Boolean, default=False)
     todo_items = db.relationship('Todo', backref='type', lazy='dynamic')
 
@@ -209,14 +209,15 @@ class TodoType(db.Model, PaginateMixIn):
         data = {
             'id': self.id,
             'user_id': self.user_id,
-            'name': self.name,
-            'is_deleted': self.is_deleted
+            'type_name': self.type_name,
+            'is_deleted': self.is_deleted,
+            'todo_items': [todo_item.to_dict() for todo_item in self.todo_items if todo_item.is_deleted is False]
         }
         return data
 
     def from_dict(self, data):
-        if 'name' in data:
-            setattr(self, 'name', data['name'])
+        if 'type_name' in data:
+            setattr(self, 'type_name', data['type_name'])
 
 
 class Todo(db.Model, PaginateMixIn):

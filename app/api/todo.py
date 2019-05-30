@@ -2,6 +2,7 @@
 from flask import request, g, jsonify
 
 from app import db
+from app import logging
 from app.api import bp
 from app.api.auth import token_auth
 from app.api.errors import bad_request
@@ -29,22 +30,23 @@ def get_todo_types():
     return jsonify(TodoType.to_collections_dict(query, page, per_page, 'api.get_todo_types'))
 
 
-@bp.route('/todo_types/{id}', methods=['GET'])
+@bp.route('/todo_types/<tid>', methods=['GET'])
 @token_auth.login_required
-def get_todo_type(id):
-    pass
+def get_todo_type(tid):
+    todo_type = TodoType.query.get_or_404(tid)
+    return jsonify(todo_type.to_dict())
 
 
 @bp.route('/todo_types', methods=['POST'])
 @token_auth.login_required
 def add_todo_types():
     data = request.get_json() or {}
-    if 'name' not in data:
-        return bad_request(400, 'name must be include')
+    if 'type_name' not in data:
+        return bad_request(400, 'type_name must be include')
 
-    todo_type = TodoType.query.filter_by(name=data['name']).first()
+    todo_type = TodoType.query.filter_by(type_name=data['type_name']).first()
     if todo_type is not None:
-        return bad_request(400, 'please use a different name')
+        return bad_request(400, 'please use a different type_name')
     todo_type = TodoType()
     todo_type.user = g.current_user
     todo_type.from_dict(data)
@@ -56,13 +58,22 @@ def add_todo_types():
 @bp.route('/todo_types', methods=['PUT'])
 @token_auth.login_required
 def edit_todo_types():
-    pass
+    data = request.get_json() or {}
+    if ('type_name' or 'id') not in data:
+        return bad_request(400, 'id , type_name  must be include')
+    todo_type = TodoType.query.get_or_404(data['id'])
+    todo_type.from_dict(data)
+    db.session.commit()
+    return jsonify(todo_type.to_dict())
 
 
-@bp.route('/todo_types/{id}', methods=['DELETE'])
+@bp.route('/todo_types/<tid>', methods=['DELETE'])
 @token_auth.login_required
-def del_todo_types(id):
-    pass
+def del_todo_types(tid):
+    todo_type = TodoType.query.get_or_404(tid)
+    todo_type.is_deleted = True
+    db.session.commit()
+    return jsonify(todo_type.to_dict())
 
 
 @bp.route('/todo', methods=['GET'])
@@ -74,9 +85,9 @@ def get_todos():
     return jsonify(Todo.to_collections_dict(query, page, per_page, 'api.get_todos'))
 
 
-@bp.route('/todo/{is}', methods=['GET'])
+@bp.route('/todo/<tid>', methods=['GET'])
 @token_auth.login_required
-def get_todo(id):
+def get_todo(tid):
     pass
 
 
@@ -94,13 +105,24 @@ def add_todo():
     return jsonify(todo.to_dict())
 
 
-@bp.route('/todo/{id}', methods=['PUT'])
+@bp.route('/todo/<tid>', methods=['PUT'])
 @token_auth.login_required
-def edit_todo(id):
-    pass
+def edit_todo(tid):
+    todo = Todo.query.get_or_404(tid)
+    data = request.get_json() or {}
+
+    if ('title ' and 'is_completed') not in data:
+        return bad_request(400, 'title and is_completed must included')
+
+    todo.from_dict(data)
+    db.session.commit()
+    return jsonify(todo.to_dict())
 
 
-@bp.route('/todo/{id}', methods=['DELETE'])
+@bp.route('/todo/<tid>', methods=['DELETE'])
 @token_auth.login_required
-def del_todo(id):
-    pass
+def del_todo(tid):
+    todo = Todo.query.get_or_404(tid)
+    todo.is_deleted = True
+    db.session.commit()
+    return jsonify(todo.to_dict())
