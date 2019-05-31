@@ -3,7 +3,7 @@ import logging
 
 from flask import request, jsonify
 
-from app import db, cache, cache_key
+from app import db, cache
 from app.api import bp
 from app.api.auth import token_auth
 from app.api.errors import bad_request
@@ -24,7 +24,7 @@ from app.models import Type
 
 @bp.route('/types', methods=['GET'])
 @token_auth.login_required
-@cache.cached(timeout=300, key_prefix=cache_key)
+@cache.memoize(timeout=604800)
 def get_types():
     page = request.args.get('page', default=1, type=int)
     per_page = min(request.args.get('per_page', default=15, type=int), 100)
@@ -36,7 +36,7 @@ def get_types():
 
 @bp.route('/types/<tid>', methods=['GET'])
 @token_auth.login_required
-@cache.memoize(timeout=300)
+@cache.memoize(timeout=604800)
 def get_type(tid):
     logging.info('request_path:{}'.format(request.path))
     order_type = Type.query.get_or_404(tid)
@@ -57,6 +57,9 @@ def add_type():
     order_type = Type()
     order_type.from_dict(data)
     db.session.add(order_type)
+    # 删除缓存
+    cache.delete_memoized(get_types)
+    # 提交数据
     db.session.commit()
     return jsonify(order_type.to_dict())
 
@@ -70,6 +73,10 @@ def update_type(tid):
     if ('id ' and 'name') not in data:
         return bad_request(400, 'id and name must included')
     order_type.from_dict(data)
+    # 删除缓存
+    cache.delete_memoized(get_type, tid)
+    cache.delete_memoized(get_types)
+    # 提交数据
     db.session.commit()
     return jsonify(order_type.to_dict())
 
@@ -79,6 +86,9 @@ def update_type(tid):
 def del_type(tid):
     order_type = Type.query.get_or_404(tid)
     order_type.is_deleted = True
+    # 删除缓存
+    cache.delete_memoized(get_types)
+    # 提交数据
     db.session.commit()
     return jsonify({
         'code': 200,

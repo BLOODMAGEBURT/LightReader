@@ -37,12 +37,6 @@ cache = Cache(app, config={
     'CACHE_REDIS_DB': Config.CACHE_REDIS_DB
 })
 
-
-def cache_key():
-    key = request.path + '?' + request.url.rsplit('/', 1)[-1]
-    return key
-
-
 from app.order import bp as order_bp
 
 app.register_blueprint(order_bp)
