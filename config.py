@@ -29,6 +29,16 @@ class Config(object):
     CACHE_REDIS_PASSWORD = os.environ.get('CACHE_REDIS_PASSWORD')
     CACHE_REDIS_DB = os.environ.get('CACHE_REDIS_DB')
 
+    # config admin email
+    MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'smtp.qq.com'
+    MAIL_PORT = int(os.environ.get('MAIL_PORT') or 587)
+    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS') or 1
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    ADMINS = [os.environ.get('ADMINS_MAIL')]
+
+    # log file
+    LOG_FILE = 'logs/microblog.log'
 
     # 语言设置
     LANGUAGES = ['zh-CN']
