@@ -20,7 +20,7 @@
                 <table>
                     <tr>
                         <td style="font-size:large">
-                            <a href="{{ url_for('book_detail',book_id=book['_id']) }}">{{ book['title'] }}</a>
+                            <a href="{{ url_for('main.book_detail',book_id=book['_id']) }}">{{ book['title'] }}</a>
 
                         </td>
                     </tr>
@@ -45,7 +45,7 @@
     {% else %}
 
         <p>
-            要查看你的订阅列表，请 <a href="{{ url_for('login') }}"> 登录</a>，或 <a href="{{ url_for('register') }}">注册</a>
+            要查看你的订阅列表，请 <a href="{{ url_for('main.login') }}"> 登录</a>，或 <a href="{{ url_for('main.register') }}">注册</a>
         </p>
     {% endif %}
     <hr>
@@ -69,7 +69,7 @@
                 {% for i in data['classify']['male'] %}
 
                     <tr>
-                        <a href="{{ url_for('classify',gender='male',start=0,limit=limit,type='hot',major=i['name']) }}">{{ i['name'] }}</a>
+                        <a href="{{ url_for('main.classify',gender='male',start=0,limit=limit,type='hot',major=i['name']) }}">{{ i['name'] }}</a>
                         &nbsp;
                     </tr>
 
@@ -83,7 +83,7 @@
                 {% for i in data['classify']['female'] %}
 
                     <tr>
-                        <a href="{{ url_for('classify',gender='female',start=0,limit=limit,type='hot',major=i['name']) }}">{{ i['name'] }}</a>
+                        <a href="{{ url_for('main.classify',gender='female',start=0,limit=limit,type='hot',major=i['name']) }}">{{ i['name'] }}</a>
                         &nbsp;
                     </tr>
 
@@ -97,7 +97,7 @@
                 {% for i in data['classify']['press'] %}
 
                     <tr>
-                        <a href="{{ url_for('classify',gender='press',start=0,limit=limit,type='hot',major=i['name']) }}">{{ i['name'] }}</a>
+                        <a href="{{ url_for('main.classify',gender='press',start=0,limit=limit,type='hot',major=i['name']) }}">{{ i['name'] }}</a>
                         &nbsp;
                     </tr>
 
@@ -114,7 +114,7 @@
             <tr>
                 {% for i in data['rank']['male'] %}
                     <tr>
-                        <a href="{{ url_for('rank',_id=i['_id']) }}">{{ i['shortTitle'] }}</a>
+                        <a href="{{ url_for('main.rank',_id=i['_id']) }}">{{ i['shortTitle'] }}</a>
                         &nbsp;
                     </tr>
                 {% endfor %}
@@ -126,7 +126,7 @@
             <tr>
                 {% for i in data['rank']['female'] %}
                     <tr>
-                        <a href="{{ url_for('rank',_id=i['_id']) }}">{{ i['shortTitle'] }}</a>
+                        <a href="{{ url_for('main.rank',_id=i['_id']) }}">{{ i['shortTitle'] }}</a>
                         &nbsp;
                     </tr>
                 {% endfor %}
@@ -140,30 +140,30 @@
     <table>
         <tr><p>男频</p></tr>
         <tr>
-            <a href="{{ url_for('book_list_rank',gender='male',sort='collectorCount',duration='all',start=0) }}">最多收藏</a>
+            <a href="{{ url_for('main.book_list_rank',gender='male',sort='collectorCount',duration='all',start=0) }}">最多收藏</a>
             &nbsp;
         </tr>
         <tr>
-            <a href="{{ url_for('book_list_rank',gender='male',sort='collectorCount',duration='last-seven-days',start=0) }}">本周最热</a>
+            <a href="{{ url_for('main.book_list_rank',gender='male',sort='collectorCount',duration='last-seven-days',start=0) }}">本周最热</a>
             &nbsp;
         </tr>
         <tr>
-            <a href="{{ url_for('book_list_rank',gender='male',sort='created',duration='duration=all',start=0) }}">最新发布</a>
+            <a href="{{ url_for('main.book_list_rank',gender='male',sort='created',duration='duration=all',start=0) }}">最新发布</a>
         </tr>
     </table>
     <br>
     <table>
         <tr><p>女频</p></tr>
         <tr>
-            <a href="{{ url_for('book_list_rank',gender='female',sort='collectorCount',duration='all',start=0) }}">最多收藏</a>
+            <a href="{{ url_for('main.book_list_rank',gender='female',sort='collectorCount',duration='all',start=0) }}">最多收藏</a>
             &nbsp;
         </tr>
         <tr>
-            <a href="{{ url_for('book_list_rank',gender='female',sort='collectorCount',duration='last-seven-days',start=0) }}">本周最热</a>
+            <a href="{{ url_for('main.book_list_rank',gender='female',sort='collectorCount',duration='last-seven-days',start=0) }}">本周最热</a>
             &nbsp;
         </tr>
         <tr>
-            <a href="{{ url_for('book_list_rank',gender='female',sort='created',duration='duration=all',start=0) }}">最新发布</a>
+            <a href="{{ url_for('main.book_list_rank',gender='female',sort='created',duration='duration=all',start=0) }}">最新发布</a>
         </tr>
     </table>
     <br>

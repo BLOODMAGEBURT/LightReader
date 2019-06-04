@@ -16,7 +16,7 @@
             <tr style="font-size: 125%">
                 <td>
                     {% if start > 0 %}
-                        <a href="{{ url_for('classify',gender=gender,major=major,start=start - limit,limit=limit,type=type) }}">上一页</a>
+                        <a href="{{ url_for('main.classify',gender=gender,major=major,start=start - limit,limit=limit,type=type) }}">上一页</a>
                     {% else %}
                         上一页
                     {% endif %}
@@ -24,7 +24,7 @@
                 </td>
                 <td>
                     {% if next %}
-                        <a href="{{ url_for('classify',gender=gender,major=major,start=start +  limit,limit=limit,type=type) }}">下一页</a>
+                        <a href="{{ url_for('main.classify',gender=gender,major=major,start=start +  limit,limit=limit,type=type) }}">下一页</a>
                     {% else %}
                         下一页
                     {% endif %}

@@ -1,7 +1,7 @@
 from app import app, db, redis
 from rq import get_current_job
 from app.models import Task, Download, User
-from app.routes import get_response, get_content_list, reg_biquge, get_content_text
+from app.main.routes import get_response, get_content_list, reg_biquge, get_content_text
 import os
 from config import Config
 from hashlib import md5

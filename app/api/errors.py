@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from flask import jsonify
 
-from app import app
+from app import create_app
 
 """
 -------------------------------------------------
@@ -14,6 +14,8 @@ from app import app
                    2019/4/17 0017:
 -------------------------------------------------
 """
+app = create_app()
+app.app_context().push()
 
 
 def bad_request(error_code, msg):

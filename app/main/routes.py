@@ -14,10 +14,11 @@ from flask import render_template, flash, redirect, url_for, request, jsonify, c
 from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.urls import url_parse
 
-from app import app, db, text, redis
+from app import create_app, db, text
 from app.forms import LoginForm, RegistrationForm, SearchForm, JumpForm
 from app.models import User, Subscribe, Download, Task, Record
 from config import Config
+from app.main import bp
 
 
 def get_response(url):
@@ -42,7 +43,7 @@ async def async_get_response(key, url, res):
             res[key] = await resp.json()
 
 
-@app.before_request
+@bp.before_request
 def before_request():
     if current_user.is_authenticated:
         current_user.last_seen = datetime.utcnow()
@@ -53,10 +54,10 @@ def before_request():
         db.session.commit()
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return redirect(url_for('main.index'))
     form = LoginForm()
     if form.validate_on_submit():
         u = User.query.filter_by(name=form.username.data).first()
@@ -67,19 +68,19 @@ def login():
         # 网页回调，使用户登录后返回登录前页面
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).decode_netloc() != '':
-            next_page = url_for('index')
+            next_page = url_for('main.index')
         return redirect(next_page)
     flash('本站内容需要登录之后才能查看')
     return render_template('login.html', title='登录', form=form)
 
 
-@app.route('/logout')
+@bp.route('/logout')
 def logout():
     logout_user()
-    return redirect(url_for('index'))
+    return redirect(url_for('main.index'))
 
 
-@app.route('/register', methods=['GET', 'POST'])
+@bp.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
@@ -88,11 +89,11 @@ def register():
         db.session.add(u)
         db.session.commit()
         flash('注册成功')
-        return redirect(url_for('login'))
+        return redirect(url_for('main.login'))
     return render_template('register.html', form=form, title='注册')
 
 
-@app.route('/delete_user/<id>', methods=['GET'])
+@bp.route('/delete_user/<id>', methods=['GET'])
 @login_required
 def delete_user(id):
     if not current_user.is_admin:
@@ -101,11 +102,11 @@ def delete_user(id):
     db.session.delete(u)
     db.session.commit()
     flash('删除用户成功！')
-    return redirect(url_for('user_list'))
+    return redirect(url_for('main.user_list'))
 
 
-@app.route('/', methods=['GET', 'POST'])
-@app.route('/index', methods=['GET', 'POST'])
+@bp.route('/', methods=['GET', 'POST'])
+@bp.route('/index', methods=['GET', 'POST'])
 # @login_required
 def index():
     dic = {}
@@ -177,7 +178,7 @@ def index():
     return render_template('index.html', data=dic, form=form, title='印象.读书', limit=Config.CHAPTER_PER_PAGE)
 
 
-@app.route('/subscribe/')
+@bp.route('/subscribe/')
 @login_required
 def subscribe():
     _id = request.args.get('id')
@@ -189,10 +190,10 @@ def subscribe():
     db.session.add(s)
     db.session.commit()
     flash('订阅成功')
-    return redirect(url_for('book_detail', book_id=_id))
+    return redirect(url_for('main.book_detail', book_id=_id))
 
 
-@app.route('/unsubscribe/')
+@bp.route('/unsubscribe/')
 @login_required
 def unsubscribe():
     _id = request.args.get('id')
@@ -202,7 +203,7 @@ def unsubscribe():
     flash('取消订阅成功')
     next_page = request.args.get('next')
     if not next_page or url_parse(next_page).decode_netloc() != '':
-        next_page = url_for('index')
+        next_page = url_for('main.index')
     return redirect(next_page)
 
 
@@ -216,7 +217,7 @@ def get_source_id(book_id):
     return source_id
 
 
-@app.route('/chapter/', methods=['GET', 'POST'])
+@bp.route('/chapter/', methods=['GET', 'POST'])
 @login_required
 def chapter():
     page = request.args.get('page')
@@ -256,7 +257,7 @@ def chapter():
                            book_id=book_id, form=form)
 
 
-@app.route('/read/', methods=['GET'])
+@bp.route('/read/', methods=['GET'])
 @login_required
 def read():
     index = int(request.args.get('index'))
@@ -292,7 +293,7 @@ def read():
         # 使用后台任务缓存下一章节
         try:
             current_app.task_queue.enqueue('app.tasks.cache', next_key, next_url)
-        except redis.exceptions.RedisError:
+        except current_app.redis.exceptions.RedisError:
             print('后台任务未开启！')
     font_size = '120%'
     if current_user.is_authenticated:
@@ -350,15 +351,15 @@ def get_content_text(url):
 
 
 def get_redis_string(key):
-    if redis.exists(key):
-        txt = redis.get(key).decode()
+    if current_app.redis.exists(key):
+        txt = current_app.redis.get(key).decode()
     else:
         return None
     return txt
 
 
 def set_redis_string(key, txt):
-    redis.set(key, str(txt), ex=86400)
+    current_app.redis.set(key, str(txt), ex=86400)
 
 
 def get_content_list(url, key=None):
@@ -394,7 +395,7 @@ def local2utc(local_st):
     return utc_st
 
 
-@app.route('/book_detail', methods=['GET'])
+@bp.route('/book_detail', methods=['GET'])
 @login_required
 def book_detail():
     book_id = request.args.get('book_id')
@@ -440,7 +441,7 @@ def book_detail():
         title=data.get('title'), readingChapter=reading_chapter, is_subscribe=is_subscribe)
 
 
-@app.route('/source/<book_id>', methods=['GET'])
+@bp.route('/source/<book_id>', methods=['GET'])
 @login_required
 def source(book_id):
     page = request.args.get('page')
@@ -459,7 +460,7 @@ def source(book_id):
 
 
 # 分类
-@app.route('/classify', methods=['GET'])
+@bp.route('/classify', methods=['GET'])
 def classify():
     gender = request.args.get('gender')
     _type = request.args.get('type')
@@ -487,7 +488,7 @@ def classify():
 
 
 # 书单列表
-@app.route('/book_list_rank', methods=['GET'])
+@bp.route('/book_list_rank', methods=['GET'])
 def book_list_rank():
     gender = request.args.get('gender')
     duration = request.args.get('duration')
@@ -509,7 +510,7 @@ def book_list_rank():
 
 
 # 书单详情
-@app.route('/bool_list_detail<_id>', methods=['GET'])
+@bp.route('/bool_list_detail<_id>', methods=['GET'])
 @login_required
 def book_list_detail(_id):
     # data = get_response('https://novel.juhe.im/booklists/' + _id)
@@ -523,7 +524,7 @@ def book_list_detail(_id):
 
 
 # 排行榜
-@app.route('/rank/<_id>', methods=['GET'])
+@bp.route('/rank/<_id>', methods=['GET'])
 def rank(_id):
     # data = get_response('http://novel.juhe.im/rank/' + _id)
     data = get_response('http://api.zhuishushenqi.com/ranking/' + _id)
@@ -531,7 +532,7 @@ def rank(_id):
         return render_template('rank.html', title='排行', data=data)
 
 
-@app.route('/download', methods=['GET'])
+@bp.route('/download', methods=['GET'])
 @login_required
 def download():
     book_id = request.args.get('book_id')
@@ -552,7 +553,7 @@ def download():
         if d.lock:
             # 检测文件锁
             flash('文件正在生成，请稍后再试！')
-            return redirect(url_for('book_detail', book_id=book_id))
+            return redirect(url_for('main.book_detail', book_id=book_id))
         else:
             # 检测服务器是否已经下载了文件的最新版本
             # data = get_response('http://novel.juhe.im/book-sources?view=summary&book=' + source_id)
@@ -578,10 +579,10 @@ def download():
     task = current_user.launch_task('download', book_name, source_id, book_id)
     db.session.commit()
     flash('下载任务已经提交，请稍后回来下载')
-    return redirect(url_for('book_detail', book_id=book_id))
+    return redirect(url_for('main.book_detail', book_id=book_id))
 
 
-@app.route('/background', methods=['GET'])
+@bp.route('/background', methods=['GET'])
 @login_required
 def background():
     if not current_user.is_admin:
@@ -589,7 +590,7 @@ def background():
     return render_template('background.html', title='后台管理')
 
 
-@app.route('/user_list', methods=['GET'])
+@bp.route('/user_list', methods=['GET'])
 @login_required
 def user_list():
     if not current_user.is_admin:
@@ -602,7 +603,7 @@ def user_list():
     return render_template('user_list.html', title='用户列表', lis=lis)
 
 
-@app.route('/user_detail/<id>', methods=['GET'])
+@bp.route('/user_detail/<id>', methods=['GET'])
 @login_required
 def user_detail(id):
     if not current_user.is_admin:
@@ -631,7 +632,7 @@ def user_detail(id):
     return render_template('user_detail.html', dic=dic, title='用户详情--%s' % u.name)
 
 
-@app.route('/change_download_permission/<id>', methods=['GET'])
+@bp.route('/change_download_permission/<id>', methods=['GET'])
 @login_required
 def change_download_permission(id):
     if not current_user.is_admin:
@@ -644,10 +645,10 @@ def change_download_permission(id):
     db.session.add(u)
     db.session.commit()
     flash('修改下载权限成功！')
-    return redirect(url_for('user_detail', id=id))
+    return redirect(url_for('main.user_detail', id=id))
 
 
-@app.route('/download_list', methods=['GET'])
+@bp.route('/download_list', methods=['GET'])
 @login_required
 def download_list():
     if not current_user.is_admin:
@@ -681,7 +682,7 @@ def download_list():
     return render_template('download_list.html', lis=lis, title='下载列表')
 
 
-@app.route('/delete_download_file/<id>', methods=['GET'])
+@bp.route('/delete_download_file/<id>', methods=['GET'])
 @login_required
 def delete_download_file(id):
     if not current_user.is_admin:
@@ -694,10 +695,10 @@ def delete_download_file(id):
     db.session.delete(d)
     db.session.commit()
     flash('删除下载项目成功！')
-    return redirect(url_for('download_list'))
+    return redirect(url_for('main.download_list'))
 
 
-@app.route('/download_file/', methods=['GET'])
+@bp.route('/download_file/', methods=['GET'])
 @login_required
 def download_file():
     file_name = request.args.get('file_name')
@@ -707,7 +708,7 @@ def download_file():
         return render_template('view_documents.html', title='下载文件', url=text.url(file_name), book_title=book_name)
 
 
-@app.route('/get_task_progress', methods=['POST'])
+@bp.route('/get_task_progress', methods=['POST'])
 @login_required
 def get_task_progress():
     ids = json.loads(request.get_data())
@@ -721,7 +722,7 @@ def get_task_progress():
     return jsonify(lis)
 
 
-@app.route('/read_setting/', methods=['GET', 'POST'])
+@bp.route('/read_setting/', methods=['GET', 'POST'])
 @login_required
 def read_setting():
     if request.method == 'GET':
@@ -739,7 +740,7 @@ def read_setting():
                 '而真正有本领怀才不遇却被五斗米折腰的有志青年，信用卡额度是你快速打通向上的通道的顺风车，。',
                 '它给你带来的不仅仅是银行的羊毛这样的蝇头小利，',
                 '还有提升自身的最长久的投资']
-        next_url = url_for('read', index=index, book_id=book_id, source_id=source_id)
+        next_url = url_for('main.read', index=index, book_id=book_id, source_id=source_id)
         return render_template('read_setting.html', title='阅读设置', body=body, next_url=next_url)
     if request.method == 'POST':
         data = json.loads(request.get_data())
@@ -751,7 +752,7 @@ def read_setting():
         return 1
 
 
-@app.route('/author/<author_name>', methods=['GET'])
+@bp.route('/author/<author_name>', methods=['GET'])
 @login_required
 def author(author_name):
     data = get_response('http://api.zhuishushenqi.com/book/accurate-search?author=' + author_name)

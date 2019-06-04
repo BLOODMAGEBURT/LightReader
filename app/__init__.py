@@ -1,6 +1,6 @@
 import logging
-import ssl
 import os
+import ssl
 from logging.handlers import SMTPHandler, RotatingFileHandler
 
 import rq
@@ -39,6 +39,8 @@ bootstrap = Bootstrap()
 babel = Babel()
 # 忽略ssl验证
 ssl._create_default_https_context = ssl._create_unverified_context
+# flask-uploads
+text = UploadSet("downloads", TEXT)
 
 # flask-cache
 cache = Cache(config={
@@ -60,11 +62,11 @@ def create_app(config_class=Config):
     bootstrap.init_app(app)
     moment.init_app(app)
     babel.init_app(app)
-    text = UploadSet("downloads", TEXT)
-    configure_uploads(app, text)
 
-    redis = Redis.from_url(app.config['REDIS_URL'])
-    app.task_queue = rq.Queue('lightreader-tasks', connection=redis)
+    configure_uploads(app, text)
+    # redis
+    app.redis = Redis.from_url(app.config.get('REDIS_URL'))
+    app.task_queue = rq.Queue('lightreader-tasks', connection=app.redis)
 
     cache.init_app(app)
 
@@ -75,6 +77,9 @@ def create_app(config_class=Config):
     from app.api import bp as api_bp
 
     app.register_blueprint(api_bp, url_prefix='/api')
+
+    from app.main import bp as main_bp
+    app.register_blueprint(main_bp)
 
     if not (app.debug or app.testing):
         if app.config['MAIL_SERVER']:
@@ -122,4 +127,5 @@ def get_locale():
     return request.accept_languages.best_match(current_app.config['LANGUAGES'])
 
 
-from app import models, routes
+from app import models
+from app.main import routes

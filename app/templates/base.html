@@ -33,19 +33,19 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="{{ url_for('index') }}">印象.读书</a>
+                <a class="navbar-brand" href="{{ url_for('main.index') }}">印象.读书</a>
             </div>
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav navbar-right">
                     {% if current_user.is_anonymous %}
-                        <li><a href="{{ url_for('login') }}">登录</a></li>
+                        <li><a href="{{ url_for('main.login') }}">登录</a></li>
                     {% else %}
-                        <li><a href="{{ url_for('logout') }}">登出</a></li>
+                        <li><a href="{{ url_for('main.logout') }}">登出</a></li>
                     {% endif %}
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     {% if current_user.is_admin %}
-                        <li><a href="{{ url_for('background') }}">后台</a></li>
+                        <li><a href="{{ url_for('main.background') }}">后台</a></li>
                     {% endif %}
                 </ul>
             </div>
@@ -111,7 +111,7 @@
                 var since = 0;
                 var interval = setInterval(function () {
                     $.ajax({
-                        url: '{{ url_for('get_task_progress') }}',
+                        url: '{{ url_for('main.get_task_progress') }}',
                         type: 'POST',
                         async: true,
                         data: JSON.stringify(ids),
